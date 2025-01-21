@@ -74,7 +74,7 @@ for clave in claves_a_actualizar:
     valor_actual = int(baseDatosRedis.get(clave))
     nuevo_valor = valor_actual + 1
     baseDatosRedis.set(clave, nuevo_valor)
-    print(f'Ejercicio 12 - Clave actualizada: {clave}, Nuevo valor: {nuevo_valor}')
+    print(f'Ejercicio 12 - Clave actualizada: {clave}, Antiguo valor: {valor_actual}, Nuevo valor: {nuevo_valor}')
 #13 - Eliminar una serie de registros en base a un filtro (0.5 puntos)
 claves_a_eliminar = [clave for clave in baseDatosRedis.keys('paciente:*:diagnostico') if baseDatosRedis.get(clave) == 'Asma']
 for clave in claves_a_eliminar:
@@ -130,37 +130,36 @@ print('Ejercicio 16 - Lista creada y almacenada en Redis')
 filtro = 'a'
 elementos_filtrados = [paciente for paciente in baseDatosRedis.lrange('lista_pacientes', 0, -1) if filtro in paciente]
 print(f'Ejercicio 17 - Elementos de la lista que contienen "{filtro}": {elementos_filtrados}')
-#18 - En Redis hay otras formas de almacenar datos: Set, Hashes, SortedSet,Streams, Geopatial, Bitmaps, Bitfields,Probabilistic y Time Series. Elige dos de estos tipos, y crea una función que los guarde en la base de datos y otra que los obtenga. (1.5 puntos)
-# Funciones para almacenar y obtener datos usando Hashes
-def guardar_hash(redis_db, nombre_hash, datos):
-    redis_db.hmset(nombre_hash, datos)
-    print(f'Hash "{nombre_hash}" guardado en Redis')
-
-def obtener_hash(redis_db, nombre_hash):
-    datos = redis_db.hgetall(nombre_hash)
-    print(f'Datos del hash "{nombre_hash}": {datos}')
-    return datos
-
-# Funciones para almacenar y obtener datos usando Sets
-def guardar_set(redis_db, nombre_set, elementos):
-    redis_db.sadd(nombre_set, *elementos)
+# 18 - En Redis hay otras formas de almacenar datos: Set, Hashes, SortedSet,Streams, Geopatial, Bitmaps, Bitfields,Probabilistic y Time Series. Elige dos de estos tipos, y crea una función que los guarde en la base de datos y otra que los obtenga. (1.5 puntos)
+print('Ejercicio 18 - Funciones para guardar y obtener Set y SortedSet en Redis')
+# Funciones para Set
+def guardar_set(redis_db, nombre_set, valores):
+    for valor in valores:
+        redis_db.sadd(nombre_set, valor)
     print(f'Set "{nombre_set}" guardado en Redis')
 
 def obtener_set(redis_db, nombre_set):
-    elementos = redis_db.smembers(nombre_set)
-    print(f'Elementos del set "{nombre_set}": {elementos}')
-    return elementos
+    valores = redis_db.smembers(nombre_set)
+    print(f'Valores del set "{nombre_set}": {valores}')
+    return valores
 
-# Ejemplo de uso de Hashes
-datos_paciente = {
-    'nombre': 'Ana Lopez',
-    'edad': 28,
-    'diagnostico': 'Migraña'
-}
-guardar_hash(baseDatosRedis, 'paciente:4', datos_paciente)
-obtener_hash(baseDatosRedis, 'paciente:4')
+# Funciones para SortedSet
+def guardar_sorted_set(redis_db, nombre_sorted_set, valores_con_puntuacion):
+    for valor, puntuacion in valores_con_puntuacion.items():
+        redis_db.zadd(nombre_sorted_set, {valor: puntuacion})
+    print(f'SortedSet "{nombre_sorted_set}" guardado en Redis')
 
-# Ejemplo de uso de Sets
-elementos_set = {'elemento1', 'elemento2', 'elemento3'}
-guardar_set(baseDatosRedis, 'mi_set', elementos_set)
-obtener_set(baseDatosRedis, 'mi_set')
+def obtener_sorted_set(redis_db, nombre_sorted_set):
+    valores = redis_db.zrange(nombre_sorted_set, 0, -1, withscores=True)
+    print(f'Valores del SortedSet "{nombre_sorted_set}": {valores}')
+    return valores
+
+# Ejemplo de uso de Set con nombres de pacientes
+valores_set = {'Juan Perez', 'Maria Gomez', 'Carlos Ruiz'}
+guardar_set(baseDatosRedis, 'nombres_pacientes_set', valores_set)
+obtener_set(baseDatosRedis, 'nombres_pacientes_set')
+
+# Ejemplo de uso de SortedSet con edades de pacientes
+valores_sorted_set = {'Juan Perez': 31, 'Maria Gomez': 25, 'Carlos Ruiz': 40}
+guardar_sorted_set(baseDatosRedis, 'edades_pacientes_sorted_set', valores_sorted_set)
+obtener_sorted_set(baseDatosRedis, 'edades_pacientes_sorted_set')
